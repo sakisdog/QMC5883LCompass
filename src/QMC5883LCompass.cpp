@@ -151,7 +151,22 @@ void QMC5883LCompass::setCalibration(int x_min, int x_max, int y_min, int y_max,
 	_vCalibration[2][1] = z_max;
 }
 
-
+void QMC5883LCompass::SetDeclination( int declination_degs , int declination_mins, char declination_dir )
+{    
+  // Convert declination to decimal degrees
+  switch(declination_dir)
+  {
+    // North and East are positive   
+    case 'E': 
+      declination_offset_radians = ( declination_degs + (1/60 * declination_mins)) * (M_PI / 180);
+      break;
+      
+    // South and West are negative    
+    case 'W':
+      declination_offset_radians =  0 - (( declination_degs + (1/60 * declination_mins) ) * (M_PI / 180));
+      break;
+  } 
+}
 
 /**
 	READ
@@ -328,9 +343,24 @@ int QMC5883LCompass::_get(int i){
 	@since v0.1;
 	@return int azimuth
 **/
-int QMC5883LCompass::getAzimuth(){
-	int a = atan2( getY(), getX() ) * 180.0 / PI;
-	return a < 0 ? 360 + a : a;
+float QMC5883LCompass::getAzimuth(){
+	// calculate heading from the north and west magnetic axes
+	float heading = atan2(-getY(), getX());
+	
+	// Adjust the heading by the declination
+	heading += declination_offset_radians;
+	
+	// Correct for when signs are reversed.
+	if(heading < 0)
+		heading += 2*M_PI;
+		
+	// Check for wrap due to addition of declination.
+	if(heading > 2*M_PI)
+		heading -= 2*M_PI;
+	
+	// Convert radians to degrees for readability.
+	heading = heading * 180/M_PI; 
+  	return heading < 0 ? 360 + heading : heading;
 }
 
 
