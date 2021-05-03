@@ -345,8 +345,10 @@ int QMC5883LCompass::_get(int i){
 **/
 float QMC5883LCompass::getAzimuth(){
 	// calculate heading from the north and west magnetic axes
-	float heading = atan2(-getY(), getX());
-	
+	float heading = atan2(getY(), getX());
+	if (compassFlip){
+		heading = atan2(-getY(), getX());
+	}
 	// Adjust the heading by the declination
 	heading += declination_offset_radians;
 	
@@ -360,6 +362,7 @@ float QMC5883LCompass::getAzimuth(){
 	
 	// Convert radians to degrees for readability.
 	heading = heading * 180/M_PI; 
+	heading = heading - offsetDegrees;
   	return heading < 0 ? 360 + heading : heading;
 }
 

@@ -22,8 +22,10 @@ class QMC5883LCompass{
 	float getAzimuth();
 	byte getBearing(int azimuth);
 	void getDirection(char* myArray, int azimuth);
-    void SetDeclination( int declination_degs , int declination_mins, char declination_dir );
+	void SetDeclination( int declination_degs , int declination_mins, char declination_dir );
 	float declination_offset_radians =  0.0;
+	bool compassFlip = false;
+	int offsetDegrees = 0;
 	
   private:
     void _writeReg(byte reg,byte val);
