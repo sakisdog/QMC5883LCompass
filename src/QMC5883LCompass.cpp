@@ -125,7 +125,7 @@ void QMC5883LCompass::setMode(byte mode, byte odr, byte rng, byte osr){
  * then: setMagneticDeclination(-19, 43);
  */
 void QMC5883LCompass::setMagneticDeclination(int degrees, uint8_t minutes) {
-	_magneticDeclinationDegrees = degrees + minutes / 60;
+	_magneticDeclinationDegrees = degrees < 0 ? 0 - (abs(degrees) + minutes / 60) : degrees + minutes / 60;
 }
 
 
@@ -409,9 +409,18 @@ int QMC5883LCompass::_get(int i){
 	@return int azimuth
 **/
 int QMC5883LCompass::getAzimuth(){
+	read();
 	float heading = atan2( getY(), getX() ) * 180.0 / PI;
+	if (compassFlip){
+		heading = atan2(-getY(), getX()) * 180.0 / PI;;
+	}
 	heading += _magneticDeclinationDegrees;
-	return (int)heading % 360;
+	heading = heading - offsetDegrees;
+		// Ensure heading is in the range of 0 to 360 degrees
+	if (heading < 0) {
+			heading += 360;
+	}
+	return heading;
 }
 
 
